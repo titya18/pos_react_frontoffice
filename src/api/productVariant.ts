@@ -8,6 +8,7 @@ export interface ProductVariantData {
     units: { id: number, name: string } | null,
     code: string,
     name: string,
+    purchasePrice: number | string,
     retailPrice: number | string,
     wholeSalePrice: number | string,
     isActive: string,
@@ -53,6 +54,7 @@ export const upsertProductVariant = async (productVariantData: ProductVariantDat
     formData.append("unitId", data.unitId.toString());
     formData.append("code", data.code);
     formData.append("name", data.name);
+    formData.append("purchasePrice", data.purchasePrice.toString());
     formData.append("retailPrice", data.retailPrice.toString());
     formData.append("wholeSalePrice", data.wholeSalePrice.toString());
     

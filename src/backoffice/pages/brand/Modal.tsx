@@ -95,7 +95,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, brand }) => {
                     <form onSubmit={handleSubmit(handleFormSubmit)}>
                         <div className="p-5">
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937]">
-                                <label htmlFor="module">Brand's Name</label>
+                                <label htmlFor="module">Brand's Name <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Brand's name" 

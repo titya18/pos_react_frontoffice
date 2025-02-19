@@ -215,7 +215,7 @@ const UserForm: React.FC = () => {
 
                         {showAndHideRoleDiv === "USER" && !user?.branchId &&
                             <div className="mb-5">
-                                <label>Branch</label>
+                                <label>Branch <span className="text-danger text-md">*</span></label>
                                 <select 
                                     id="branch" className="form-input" 
                                     {...register("branchId", { 
@@ -234,13 +234,13 @@ const UserForm: React.FC = () => {
                         }
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
                             <div>
-                                <label>Last Name</label>
+                                <label>Last Name <span className="text-danger text-md">*</span></label>
                                 <input type="text" placeholder="Last Name" className="form-input"
                                     {...register("lastName", {required: "Last Name is required"})} />
                                 {errors.lastName && <span className="error_validate">{errors.lastName.message}</span>}
                             </div>
                             <div>
-                                <label>First Name</label>
+                                <label>First Name <span className="text-danger text-md">*</span></label>
                                 <input type="text" placeholder="First Name" className="form-input" 
                                     {...register("firstName", {required: "First Name is required"})}/>
                                 {errors.firstName && <span className="error_validate">{errors.firstName.message}</span>}
@@ -248,13 +248,13 @@ const UserForm: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
                             <div>
-                                <label>Email</label>
+                                <label>Email <span className="text-danger text-md">*</span></label>
                                 <input type="email" placeholder="Email" className="form-input" 
                                     {...register("email", {required: "Email is required"})}/>
                                 {errors.email && <span className="error_validate">{errors.email.message}</span>}
                             </div>
                             <div>
-                                <label>Phone Number</label>
+                                <label>Phone Number <span className="text-danger text-md">*</span></label>
                                 <input type="text" placeholder="Phone Number" className="form-input" 
                                     {...register("phoneNumber", {required: "Phone Number is required"})}/>
                                 {errors.firstName && <span className="error_validate">{errors.firstName.message}</span>}
@@ -262,7 +262,7 @@ const UserForm: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label>Password</label>
+                                <label>Password <span className="text-danger text-md">*</span></label>
                                 <input type="password" className="form-input" 
                                     {...register("password", {
                                         required: !id ? "Password is required" : false,
@@ -292,7 +292,7 @@ const UserForm: React.FC = () => {
                     </div>
                     {showAndHideRoleDiv === "USER" &&
                         <div className="mt-5">
-                            <label className="font-semibold text-underline" style={{ fontSize: '18px', textDecoration: "underline" }}>Give Role</label>
+                            <label className="font-semibold text-underline" style={{ fontSize: '18px', textDecoration: "underline" }}>Give Role <span className="text-danger text-md">*</span></label>
                             <div className="flex flex-wrap space-x-4 mt-5">
                                 {roleData.map(role_row => (
                                     <div key={role_row.id}>

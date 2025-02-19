@@ -157,7 +157,7 @@ const RoleForm: React.FC = () => {
             <div className="mb-5">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div>
-                        <label>Role's Name</label>
+                        <label>Role's Name <span className="text-danger text-md">*</span></label>
                         <input
                             type="text"
                             placeholder="Role's Name"
@@ -167,7 +167,7 @@ const RoleForm: React.FC = () => {
                         {errors.name && <span className="error_validate">{errors.name.message}</span>}
                     </div>
                     <div className="mt-5">
-                        <label className="font-semibold text-underline" style={{ fontSize: '18px', textDecoration: "underline" }}>Permission</label>
+                        <label className="font-semibold text-underline" style={{ fontSize: '18px', textDecoration: "underline" }}>Permission <span className="text-danger text-md">*</span></label>
                         <div className="flex flex-wrap space-x-2">
                             {permissions.map(permission => (
                                 <div className="w-full max-w-[22rem] rounded border border-[#e0e6ed] bg-white shadow-[4px_6px_10px_-3px_#bfc9d4] dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none mb-5" key={permission.id}>

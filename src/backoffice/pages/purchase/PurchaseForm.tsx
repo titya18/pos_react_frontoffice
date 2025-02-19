@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faSave, faCirclePlus } from "@fortawesome/free-solid-svg-icons";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { getAllBranches } from "../../../api/branch";
-import { getAllSuppliers } from "../../../api/supplier";
 import { searchProduct } from "../../../api/searchProduct";
 import { upsertPurchase, getPurchaseByid } from "../../../api/purchase";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -14,6 +13,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import "./dateStyle.css";
 import Modal from "./Modal";
+import SupplierModal from "../supplier/Modal";
+import { useSuppliers } from "../../../hooks/useSupplier";
 import { useQueryClient } from "react-query";
 
 export interface BranchData {
@@ -22,8 +23,11 @@ export interface BranchData {
 }
 
 export interface SupplierData {
-    id: number;
+    id?: number;
     name: string;
+    phone: string;
+    email: string;
+    address: string;
 }
 
 interface ProductVariant {
@@ -31,6 +35,7 @@ interface ProductVariant {
     productId: number;
     name: string;
     code: string;
+    purchasePrice: number;
     products: { id: number, name: string } | null;
 }
 
@@ -75,10 +80,11 @@ export interface PurchaseData {
 }
 
 const PurchaseForm: React.FC = () => {
+    const { allSuppliers, handleAddOrEditSupplier } = useSuppliers();
     const { id } = useParams<{ id: string }>();
     const [isLoading, setIsLoading] = useState(false);
     const [braches, setBranches] = useState<BranchData[]>([]);
-    const [suppliers, setSuppliers] = useState<SupplierData[]>([]);
+    // const [suppliers, setSuppliers] = useState<SupplierData[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [productResults, setProductResults] = useState<ProductVariant[]>([]);
     const [purchaseDetails, setPurchaseDetails] = useState<PurchaseDetail[]>([]);
@@ -104,6 +110,9 @@ const PurchaseForm: React.FC = () => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+
+    const queryClient = useQueryClient();
 
     const { user, hasPermission } = useAppContext();
 
@@ -113,71 +122,61 @@ const PurchaseForm: React.FC = () => {
 
     const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<PurchaseData> ();
 
-    useEffect(() => {
-        const fetchBranches = async () => {
-            setIsLoading(true);
-            try {
-                const { data } = await getAllBranches(1, "", 100, null, null);
-                setBranches(data as BranchData[]);
-            } catch (error) {
-                console.error("Error fetching branch:", error);
-            } finally {
-                setIsLoading(false);
-            }
+    const fetchBranches = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const { data } = await getAllBranches(1, "", 100, null, null);
+            setBranches(data as BranchData[]);
+        } catch (error) {
+            console.error("Error fetching branch:", error);
+        } finally {
+            setIsLoading(false);
         }
-
-        const fetchSuppliers = async () => {
-            setIsLoading(true);
-            try {
-                const { data } = await getAllSuppliers(1, "", 100, null, null);
-                setSuppliers(data as SupplierData[]);
-            } catch (error) {
-                console.error("Error fetching supplier", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        const fetchPurchase = async () => {
-            if (id) { // Only fetch when 'id' is available and not already fetching
-                setIsLoading(true);
-                try {
-                    if (id) {
-                        const purchaseData: PurchaseData = await getPurchaseByid(parseInt(id, 10));
-                        await fetchBranches();
-                        await fetchSuppliers();
-                        setValue("branchId", purchaseData.branchId);
-                        setValue("supplierId", purchaseData.supplierId);
-                        if (purchaseData.date) {
-                            setSelectedDate(new Date(purchaseData.date));
-                        }
-                        setValue("taxRate", purchaseData.taxRate);
-                        setValue("shipping", purchaseData.shipping);
-                        setValue("discount", purchaseData.discount);
-                        setGrandTotal(purchaseData.grandTotal);
-                        setValue("paidAmount", purchaseData.paidAmount);
-                        setValue("status", purchaseData.status);
-                        setValue("note", purchaseData.note);
-                        // Update purchaseDetails only if it has changed
-                        // if (JSON.stringify(purchaseData.purchaseDetails) !== JSON.stringify(purchaseDetails)) {
-                            setPurchaseDetails(purchaseData.purchaseDetails);
-                        // }
-                    }
-                } catch (error) {
-                    console.error("Error fetching purchase:", error);
-                } finally {
-                    setIsLoading(false);
-                    // setIsFetching(false); // Reset fetching flag after completion
-                }
-            }
-        };
-
-        // Call all fetch functions
-        const fetchData = async () => {
-            await Promise.all([fetchBranches(), fetchSuppliers(), fetchPurchase()]);
-        };
-        fetchData();
     }, [id, setValue]);
+
+    const fetchPurchase = useCallback(async () => {
+        if (id) { // Only fetch when 'id' is available and not already fetching
+            setIsLoading(true);
+            try {
+                if (id) {
+                    const purchaseData: PurchaseData = await getPurchaseByid(parseInt(id, 10));
+                    await fetchBranches();
+                    // await fetchSuppliers();
+                    setValue("branchId", purchaseData.branchId);
+                    setValue("supplierId", purchaseData.supplierId);
+                    if (purchaseData.date) {
+                        setSelectedDate(new Date(purchaseData.date));
+                    }
+                    setValue("taxRate", purchaseData.taxRate);
+                    setValue("shipping", purchaseData.shipping);
+                    setValue("discount", purchaseData.discount);
+                    setGrandTotal(purchaseData.grandTotal);
+                    setValue("paidAmount", purchaseData.paidAmount);
+                    setValue("status", purchaseData.status);
+                    setValue("note", purchaseData.note);
+                    // Update purchaseDetails only if it has changed
+                    // if (JSON.stringify(purchaseData.purchaseDetails) !== JSON.stringify(purchaseDetails)) {
+                        setPurchaseDetails(purchaseData.purchaseDetails);
+                    // }
+                }
+            } catch (error) {
+                console.error("Error fetching purchase:", error);
+            } finally {
+                setIsLoading(false);
+                // setIsFetching(false); // Reset fetching flag after completion
+            }
+        }
+    }, [id, setValue]);
+
+    useEffect(() => {
+        // // Call all fetch functions
+        // const fetchData = async () => {
+        //     await Promise.all([fetchBranches(), fetchSuppliers(), fetchPurchase()]);
+        // };
+        // fetchData();
+        fetchBranches();
+        fetchPurchase();
+    }, [fetchBranches, fetchPurchase]);
 
     // Watch the "shipping" field
     const shippingValue = String(watch("shipping") || "0"); // Force it to be a string
@@ -271,6 +270,7 @@ const PurchaseForm: React.FC = () => {
             alert("Product already in cart");
             return;
         }
+        // console.log("ddfd:", newDetail);
 
         setClickData({
             id: newDetail.id,
@@ -450,7 +450,6 @@ const PurchaseForm: React.FC = () => {
         setPurchaseDetails(updatedDetails);
     };
 
-    const queryClient = useQueryClient();
     const onSubmit: SubmitHandler<PurchaseData> = async (formData) => {
         setIsLoading(true);
         try {
@@ -471,7 +470,7 @@ const PurchaseForm: React.FC = () => {
                 shipping: formData.shipping ? formData.shipping : null,
                 grandTotal: grandTotal,
                 paidAmount: 0,
-                status: "Pending",
+                status: formData.status,
                 note: formData.note,
                 purchaseDetails: purchaseDetails
             }
@@ -490,6 +489,7 @@ const PurchaseForm: React.FC = () => {
                 taxNet: undefined,
                 discount: undefined,
                 shipping: undefined,
+                status: undefined,
                 note: undefined,
                 purchaseDetails: [], // Clear purchaseDetails
             });
@@ -620,19 +620,24 @@ const PurchaseForm: React.FC = () => {
                                 </div>
                                 <div>
                                     <label>Supplier <sup>*</sup></label>
-                                    <select 
-                                        id="supplierId" className="form-input" 
-                                        {...register("supplierId", { 
-                                            required: "Supplier is required"
-                                        })} 
-                                    >
-                                        <option value="">Select a supplier...</option>
-                                        {suppliers.map((option) => (
-                                        <option key={option.id} value={option.id}>
-                                            {option.name}
-                                        </option>
-                                        ))}
-                                    </select>
+                                    <div className="flex">
+                                        <select 
+                                            id="supplierId" className="form-input ltr:rounded-r-none rtl:rounded-l-none ltr:border-r-0 rtl:border-l-0" 
+                                            {...register("supplierId", { 
+                                                required: "Supplier is required"
+                                            })} 
+                                        >
+                                            <option value="">Select a supplier...</option>
+                                            {allSuppliers.map((option) => (
+                                            <option key={option.id} value={option.id}>
+                                                {option.name}
+                                            </option>
+                                            ))}
+                                        </select>
+                                        <button type="button" onClick={() => { setIsSupplierModalOpen(true) }} className="bg-secondary text-white flex justify-center items-center ltr:rounded-r-md rtl:rounded-l-md px-3 font-semibold border ltr:border-l-0 rtl:border-r-0 border-secondary">
+                                            <FontAwesomeIcon icon={faCirclePlus} />
+                                        </button>
+                                    </div>
                                     {errors.supplierId && <span className="error_validate">{errors.supplierId.message}</span>}
                                 </div>
                             </div>
@@ -679,7 +684,7 @@ const PurchaseForm: React.FC = () => {
                                                     code: variants.code,
                                                     products: variants.products || null,
                                                     quantity: 1, // Default quantity for a new item
-                                                    cost: 0, // Default cost
+                                                    cost: variants.purchasePrice, // Default cost
                                                     taxNet: 0, // Default taxNet
                                                     taxMethod: "inclusive", // Default tax method
                                                     discount: 0,
@@ -857,6 +862,20 @@ const PurchaseForm: React.FC = () => {
                                         placeholder="0"
                                         {...register("shipping")}/>
                                 </div>
+                                <div>
+                                    <label>Status <sup>*</sup></label>
+                                    <select 
+                                        id="status" className="form-input" 
+                                        {...register("status", { 
+                                            required: "Status is required"
+                                        })} 
+                                    >
+                                        <option value="">Select a status...</option>
+                                        <option value="Received">Received</option>
+                                        <option value="Pending">Pending</option>
+                                    </select>
+                                    {errors.status && <span className="error_validate">{errors.status.message}</span>}
+                                </div>
                             </div>
                             <div className="mb-5">
                                 <label>Note</label>
@@ -884,6 +903,12 @@ const PurchaseForm: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleOnSubmit}
                 clickData={clickData}
+            />
+
+            <SupplierModal 
+                isOpen={isSupplierModalOpen}
+                onClose={() => setIsSupplierModalOpen(false)}
+                onSubmit={handleAddOrEditSupplier}
             />
         </>
     );

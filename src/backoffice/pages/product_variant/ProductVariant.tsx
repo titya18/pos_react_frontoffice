@@ -18,6 +18,7 @@ export interface ProductVariantData {
     units: { id: number, name: string } | null,
     code: string,
     name: string,
+    purchasePrice: number | string,
     retailPrice: number | string,
     wholeSalePrice: number | string,
     isActive: string,
@@ -43,6 +44,7 @@ const ProductVariant: React.FC = () => {
         unitId: number | null, 
         code: string, 
         name: string, 
+        purchasePrice: number | string,
         retailPrice: number | string,
         wholeSalePrice: number | string, 
         isActive: string, 
@@ -109,6 +111,7 @@ const ProductVariant: React.FC = () => {
         productId: number | null, 
         unitId: number | null, code: 
         string, name: string, 
+        purchasePrice: number | string, 
         retailPrice: number | string, 
         wholeSalePrice: number | string, 
         isActive: string, 
@@ -124,6 +127,7 @@ const ProductVariant: React.FC = () => {
                     units: { id: unitId ?? 0, name: "Default Unit" }, // Provide default values
                     code,
                     name,
+                    purchasePrice,
                     retailPrice,
                     wholeSalePrice,
                     isActive,
@@ -163,6 +167,7 @@ const ProductVariant: React.FC = () => {
             unitId: productVariantData.unitId,
             code: productVariantData.code,
             name: productVariantData.name,
+            purchasePrice: productVariantData.purchasePrice,
             retailPrice: productVariantData.retailPrice,
             wholeSalePrice: productVariantData.wholeSalePrice,
             isActive: productVariantData.isActive,
@@ -310,6 +315,9 @@ const ProductVariant: React.FC = () => {
                                                         Name <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
                                                     </th>
                                                     <th onClick={() => handleSortChange("retailPrice")}>
+                                                        Purchase Price <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
+                                                    </th>
+                                                    <th onClick={() => handleSortChange("retailPrice")}>
                                                         Retail Price <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
                                                     </th>
                                                     <th onClick={() => handleSortChange("wholeSalePrice")}>
@@ -333,8 +341,9 @@ const ProductVariant: React.FC = () => {
                                                                 <td><img src={`${API_BASE_URL}/${Array.isArray(rows.image) ? rows.image[0] : rows.image}`} alt={rows.name} width="50"/></td>
                                                                 <td>{rows.code}</td>
                                                                 <td>{rows.name}</td>
-                                                                <td>$ {rows.retailPrice}</td>
-                                                                <td>$ {rows.wholeSalePrice}</td>
+                                                                <td>$ { Number(rows.purchasePrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
+                                                                <td>$ { Number(rows.retailPrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
+                                                                <td>$ { Number(rows.wholeSalePrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
                                                                 <td>{rows.products ? rows.products.name : ""}</td>
                                                                 <td>{rows.units ? rows.units.name : ""}</td>
                                                                 <td>

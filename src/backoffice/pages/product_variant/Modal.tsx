@@ -10,8 +10,8 @@ import { useParams } from "react-router-dom";
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (id: number | null, productId: number | null, unitId: number | null, code: string, name: string, retailPrice: number | string, wholeSalePrice: number | string, isActive: string, image: File[] | null, imagesToDelete: string[]) => void;
-    productVariant?: { id: number | undefined, productId: number | null, unitId: number | null, code: string, name: string, retailPrice: number | string, wholeSalePrice: number | string, isActive: string, image: File | File[] | string | null } | null;
+    onSubmit: (id: number | null, productId: number | null, unitId: number | null, code: string, name: string, purchasePrice: number | string, retailPrice: number | string, wholeSalePrice: number | string, isActive: string, image: File[] | null, imagesToDelete: string[]) => void;
+    productVariant?: { id: number | undefined, productId: number | null, unitId: number | null, code: string, name: string, purchasePrice: number | string, retailPrice: number | string, wholeSalePrice: number | string, isActive: string, image: File | File[] | string | null } | null;
 };
 
 export interface ProductFormData {
@@ -19,6 +19,7 @@ export interface ProductFormData {
     unitId: number | null,
     code: string,
     name: string,
+    purchasePrice: number | string,
     retailPrice: number | string,
     wholeSalePrice: number | string,
     isActive: string,
@@ -67,6 +68,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
             setValue('unitId', productVariant.unitId);
             setValue('code', productVariant.code);
             setValue('name', productVariant.name);
+            setValue("purchasePrice", productVariant.purchasePrice);
             setValue("retailPrice", productVariant.retailPrice);
             setValue("wholeSalePrice", productVariant.wholeSalePrice);
     
@@ -101,6 +103,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                 unitId: productVariant?.unitId ?? null,
                 code: productVariant?.code ?? '',
                 name: productVariant?.name ?? '',
+                purchasePrice: productVariant?.purchasePrice ?? '',
                 retailPrice: productVariant?.retailPrice ?? '',
                 wholeSalePrice: productVariant?.wholeSalePrice ?? '',
                 image: productVariant?.image ?? null,
@@ -110,6 +113,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                 unitId: null,
                 code: "",
                 name: "",
+                purchasePrice: "",
                 retailPrice: "",
                 wholeSalePrice: "",
                 image: null,
@@ -194,7 +198,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
             // Combine converted existing images and new images
             const combinedImages = [...convertedExistingImages, ...newImages];
     
-            await onSubmit(productVariant?.id || null, numericProductId, data.unitId, data.code, data.name, data.retailPrice, data.wholeSalePrice, data.isActive, combinedImages, imagesToDelete);
+            await onSubmit(productVariant?.id || null, numericProductId, data.unitId, data.code, data.name, data.purchasePrice, data.retailPrice, data.wholeSalePrice, data.isActive, combinedImages, imagesToDelete);
     
             resetDropzoneOrFormData();
             onClose();
@@ -225,9 +229,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                     </div>
                     <form onSubmit={handleSubmit(handleFormSubmit)} encType="multipart/form-data">
                         <div className="p-5">
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
                                 <div>
-                                    <label>Unit</label>
+                                    <label>Unit <span className="text-danger text-md">*</span></label>
                                     <select 
                                         id="unitId" className="form-input" 
                                         {...register("unitId", { 
@@ -244,7 +248,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                                     {errors.unitId && <span className="error_validate">{errors.unitId.message}</span>}
                                 </div>
                                 <div>
-                                    <label htmlFor="module">code</label>
+                                    <label htmlFor="module">code <span className="text-danger text-md">*</span></label>
                                     <input 
                                         type="text" 
                                         placeholder="Enter Variant's code" 
@@ -254,8 +258,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                                     {errors.name && <p className='error_validate'>{errors.name.message}</p>}
                                 </div>
                             </div>
-                            <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937]">
-                                <label htmlFor="module">Variant's Name</label>
+                            <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mb-4">
+                                <label htmlFor="module">Variant's Name <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Product's name" 
@@ -264,29 +268,38 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                                 />
                                 {errors.name && <p className='error_validate'>{errors.name.message}</p>}
                             </div>
-
-                            <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mt-5">
-                                <label htmlFor="module">Retail Price</label>
+                            <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mb-4">
+                                <label htmlFor="module">Purchase Price <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
-                                    placeholder="Enter Retail Price" 
+                                    placeholder="Enter Purchase Price" 
                                     className="form-input"
-                                    {...register("retailPrice", { required: "This field is required" })} 
+                                    {...register("purchasePrice", { required: "This field is required" })} 
                                 />
-                                {errors.retailPrice && <p className='error_validate'>{errors.retailPrice.message}</p>}
+                                {errors.name && <p className='error_validate'>{errors.name.message}</p>}
                             </div>
-
-                            <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mt-5">
-                                <label htmlFor="module">Whole Sale Price</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Enter Whole Sale Price" 
-                                    className="form-input"
-                                    {...register("wholeSalePrice", { required: "This field is required" })} 
-                                />
-                                {errors.wholeSalePrice && <p className='error_validate'>{errors.wholeSalePrice.message}</p>}
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
+                                <div>
+                                    <label htmlFor="module">Whole Sale Price <span className="text-danger text-md">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter Whole Sale Price" 
+                                        className="form-input"
+                                        {...register("wholeSalePrice", { required: "This field is required" })} 
+                                    />
+                                    {errors.wholeSalePrice && <p className='error_validate'>{errors.wholeSalePrice.message}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="module">Retail Price <span className="text-danger text-md">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter Retail Price" 
+                                        className="form-input"
+                                        {...register("retailPrice", { required: "This field is required" })} 
+                                    />
+                                    {errors.retailPrice && <p className='error_validate'>{errors.retailPrice.message}</p>}
+                                </div>
                             </div>
-
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mt-5">
                                 <label htmlFor="module">Product's Image</label>
                                 {/* Drag-and-Drop File Upload */}

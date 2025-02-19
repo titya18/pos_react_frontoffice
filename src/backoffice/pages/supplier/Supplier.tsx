@@ -1,161 +1,36 @@
-import React, { useEffect, useState } from "react";
-import * as apiClient from "../../../api/supplier";
+import React from "react";
+import { useSuppliers } from "../../../hooks/useSupplier";
 import { useAppContext } from "../../../hooks/useAppContext";
-import { useQueryClient } from "react-query";
-import { toast } from "react-toastify";
-import Modal from "./Modal";
 import Pagination from "../../components/Pagination";
-import ShowDeleteConfirmation from "../../components/ShowDeleteConfirmation";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpZA, faArrowDownAZ } from '@fortawesome/free-solid-svg-icons';
-
-export interface SupplierData {
-    id?: number;
-    name: string;
-    phone: string;
-    email: string;
-    address: string;
-}
+import Modal from "./Modal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUpZA, faArrowDownAZ } from "@fortawesome/free-solid-svg-icons";
 
 const Supplier: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [sortField, setSortField] = useState<string | null>(null);
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
-    const [suppliers, setSuppliers] = useState<SupplierData[]>([]);
-    const [selectSupplier, setSelectSupplier] = useState<{ id: number | undefined, name: string, phone: string, email: string, address: string } | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const {
+        suppliers,
+        isLoading,
+        totalPages,
+        totalItems,
+        currentPage,
+        itemsPerPage,
+        searchTerm,
+        sortOrder,
+        isModalOpen,
+        selectedSupplier,
+        handleSortChange,
+        handlePageChange,
+        handleItemsPerPageChange,
+        handleSearchInputChange,
+        handleAddOrEditSupplier,
+        handleEditClick,
+        handleDeleteSupplier,
+        setIsModalOpen,
+        setSelectedSupplier
+    } = useSuppliers();
 
     const { hasPermission } = useAppContext();
 
-    const fetchSuppliers = async () => {
-        setIsLoading(true);
-        try {
-            const { data, total } = await apiClient.getAllSuppliers(currentPage, searchTerm, itemsPerPage, sortField, sortOrder);
-            setSuppliers(data);
-            setTotalItems(total);
-            setTotalPages(Math.ceil(total / itemsPerPage));
-        } catch (error) {
-            console.error("Error fetching supplier:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchSuppliers();
-    }, [currentPage, searchTerm, itemsPerPage, sortField, sortOrder]);
-
-    const handleSortChange = (field: string) => {
-        if (sortField === field && sortOrder === "desc") {
-            setSortOrder("asc");
-        } else {
-            setSortField(field);
-            setSortOrder("desc");
-        }
-    };
-
-    const handlePageChange = (pageNumber: number) => {
-        if (pageNumber >= 1 && pageNumber <= totalPages) {
-            setCurrentPage(pageNumber);
-        }
-    };
-
-    const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newItemsPerPage = parseInt(e.target.value, 10);
-        setItemsPerPage(newItemsPerPage);
-        setCurrentPage(1); // Reset to first page when items per page changes
-    };
-
-    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1); // Reset to first page on new search
-    };
-
-    const queryClient = useQueryClient();
-    const handleAddorEditSupplier = async (id: number | null, name: string, phone: string, email: string, address: string) => {
-        try {
-            await queryClient.invalidateQueries("validateToken");
-            const supplierData: SupplierData = {
-                id: id ? id : undefined,
-                name,
-                phone,
-                email,
-                address
-            };
-
-            await apiClient.upsertSupplier(supplierData);
-            if (id) {
-                toast.success("supplier updated successfully", {
-                    position: "top-right",
-                    autoClose: 2000
-                });
-            } else {
-                toast.success("Supplier created successfully", {
-                    position: "top-right",
-                    autoClose: 2000
-                });
-            }
-            fetchSuppliers();
-            setIsModalOpen(false);
-        } catch (error: any) {
-            // Check if error.message is set by your API function
-            if (error.message) {
-                toast.error(error.message, {
-                    position: "top-right",
-                    autoClose: 2000
-                });
-            } else {
-                toast.error("Error adding/editting supplier", {
-                    position: "top-right",
-                    autoClose: 2000
-                });
-            }
-        }
-    };
-
-    const handleEditClick = (supplierData: SupplierData) => {
-        setSelectSupplier({
-            id: supplierData.id,
-            name: supplierData.name,
-            phone: supplierData.phone,
-            email: supplierData.email,
-            address: supplierData.address
-        });
-        setIsModalOpen(true);
-    }
-
-    const handleDeleteSupplier = async (id: number) => {
-        const confirmed = await ShowDeleteConfirmation();
-        if (!confirmed) {
-            return;
-        }
-
-        try {
-            await queryClient.invalidateQueries("validateToken");
-            await apiClient.deleteSupplier(id);
-            toast.success("Supplier deleted successfully", {
-                position: 'top-right',
-                autoClose: 2000
-            });
-
-            fetchSuppliers();
-            setIsModalOpen(false);
-            setSelectSupplier(null);
-        } catch (err: any) {
-            console.error("Error deleting supplier:", err);
-
-            toast.error(err.message || "Error deleting supplier", {
-                position: 'top-right',
-                autoClose: 2000
-            });
-        }
-    }
-    
     return (
         <>
             <div className="pt-0">
@@ -166,7 +41,7 @@ const Supplier: React.FC = () => {
                                 <div className="md:absolute md:top-0 ltr:md:left-0 rtl:md:right-0">
                                     <div className="mb-5 flex items-center gap-2">
                                         {hasPermission('Category-Create') &&
-                                            <button className="btn btn-primary gap-2" onClick={() => { setIsModalOpen(true); setSelectSupplier(null) }}>
+                                            <button className="btn btn-primary gap-2" onClick={() => { setIsModalOpen(true); setSelectedSupplier(null) }}>
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="24px"
@@ -197,7 +72,7 @@ const Supplier: React.FC = () => {
                                             type="text"
                                             placeholder="Search..."
                                             value={searchTerm}
-                                            onChange={handleSearchInputChange}
+                                            onChange={(e) => handleSearchInputChange(e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -304,7 +179,7 @@ const Supplier: React.FC = () => {
                                     totalPages={totalPages}
                                     onPageChange={handlePageChange}
                                     itemsPerPage={itemsPerPage}
-                                    handleItemsPerPageChange={handleItemsPerPageChange}
+                                    handleItemsPerPageChange={(e) => handleItemsPerPageChange(parseInt(e.target.value, 10))}
                                     totalItems={totalItems}
                                 />
                             </div>
@@ -313,12 +188,14 @@ const Supplier: React.FC = () => {
                 </div>
             </div>
 
-            <Modal 
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleAddorEditSupplier}
-                supplier={selectSupplier}
-            />
+            {isModalOpen && (
+                <Modal
+                    isOpen={isModalOpen}
+                    supplier={selectedSupplier}
+                    onSubmit={handleAddOrEditSupplier}
+                    onClose={() => setIsModalOpen(false)}
+                />
+            )}
         </>
     );
 };

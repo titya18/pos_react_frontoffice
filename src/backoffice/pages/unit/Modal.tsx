@@ -62,7 +62,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, unit }) => {
                     <form onSubmit={handleSubmit(handleFormSubmit)}>
                         <div className="p-5">
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937]">
-                                <label htmlFor="module">Unit's Name</label>
+                                <label htmlFor="module">Unit's Name <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Unit's name" 

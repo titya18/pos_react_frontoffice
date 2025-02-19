@@ -224,7 +224,7 @@ const User: React.FC = () => {
                                                             <td>{rows.ref}</td>
                                                             <td>{rows.suppliers ? rows.suppliers.name : ""}</td>
                                                             <td>{rows.branch ? rows.branch.name : ""}</td>
-                                                            <td><span className="badge bg-warning rounded-full">{rows.status}</span></td>
+                                                            <td><span className={`badge rounded-full ${rows.status === 'Pending' ? 'bg-warning' : 'bg-primary'}`}>{rows.status}</span></td>
                                                             <td>$ { Number(rows.grandTotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
                                                             <td>$ { Number(rows.paidAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
                                                             <td>$ { Number(rows.grandTotal - (rows.paidAmount ?? 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>

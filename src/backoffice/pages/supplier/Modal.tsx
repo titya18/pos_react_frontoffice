@@ -3,12 +3,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faClose } from '@fortawesome/free-solid-svg-icons';
 import { useForm } from "react-hook-form";
 import { useAppContext } from "../../../hooks/useAppContext";
+import { SupplierData } from "../../../hooks/useSupplier";
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (id: number | null, name: string, phone: string, email: string, address: string) => void;
-    supplier?: { id: number | undefined, name: string, phone: string, email: string, address: string } | null;
+    onSubmit: (supplierData: SupplierData) => void;
+    supplier?: SupplierData | null;
 };
 
 export interface FormData {
@@ -49,8 +50,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, supplier }) =>
     const handleFormSubmit = async (data: FormData) => {
         setIsLoading(true);
         try {
+            const supplierData: SupplierData = {
+                id: supplier?.id,
+                name: data.name,
+                phone: data.phone,
+                email: data.email,
+                address: data.address
+            };
+
            // Call the onSubmit function, making sure it recieve the correct format
-           await onSubmit(supplier?.id || null, data.name, data.phone, data.email, data.address);
+           await onSubmit(supplierData);
            reset();
            onClose(); 
         } catch (error) {
@@ -78,7 +87,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, supplier }) =>
                     <form onSubmit={handleSubmit(handleFormSubmit)}>
                         <div className="p-5">
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937]">
-                                <label htmlFor="module">Supplier's Name</label>
+                                <label htmlFor="module">Supplier's Name <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Supplier's name" 
@@ -89,7 +98,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, supplier }) =>
                             </div>
 
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mt-5">
-                                <label htmlFor="module">Phone</label>
+                                <label htmlFor="module">Phone <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter phone number" 
@@ -100,7 +109,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, supplier }) =>
                             </div>
 
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mt-5">
-                                <label htmlFor="module">Email</label>
+                                <label htmlFor="module">Email <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="email" 
                                     placeholder="Enter email" 

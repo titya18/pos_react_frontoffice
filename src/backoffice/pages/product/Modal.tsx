@@ -236,7 +236,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, product }) => 
                         <div className="p-5">
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
                                 <div>
-                                    <label>Category</label>
+                                    <label>Category <span className="text-danger text-md">*</span></label>
                                     <select 
                                         id="categoryId" className="form-input" 
                                         {...register("categoryId", { 
@@ -253,7 +253,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, product }) => 
                                     {errors.categoryId && <span className="error_validate">{errors.categoryId.message}</span>}
                                 </div>
                                 <div>
-                                    <label>Brand</label>
+                                    <label>Brand <span className="text-danger text-md">*</span></label>
                                     <select 
                                         id="brandId" className="form-input" 
                                         {...register("brandId", { 
@@ -271,7 +271,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, product }) => 
                                 </div>
                             </div>
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937]">
-                                <label htmlFor="module">Product's Name</label>
+                                <label htmlFor="module">Product's Name <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Product's name" 

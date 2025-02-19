@@ -70,7 +70,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, category }) =>
                     <form onSubmit={handleSubmit(handleFormSubmit)}>
                         <div className="p-5">
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937]">
-                                <label htmlFor="module">Category's Code</label>
+                                <label htmlFor="module">Category's Code <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Category's code" 
@@ -81,7 +81,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, category }) =>
                             </div>
 
                             <div className="dark:text-white-dark/70 text-base font-medium text-[#1f2937] mt-5">
-                                <label htmlFor="module">Category's Name</label>
+                                <label htmlFor="module">Category's Name <span className="text-danger text-md">*</span></label>
                                 <input 
                                     type="text" 
                                     placeholder="Enter Category's name" 
