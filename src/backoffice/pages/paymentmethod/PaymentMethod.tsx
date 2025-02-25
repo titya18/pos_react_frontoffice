@@ -1,97 +1,50 @@
-// src/components/MainCategory.tsx
-import React, { useState, useEffect } from "react";
-import * as apiClient from "../../../api/purchase";
-import Pagination from "../../components/Pagination"; // Import the Pagination component
-import ShowDeleteConfirmation from "../../components/ShowDeleteConfirmation";
-import { useQueryClient } from "react-query";
+import React, { useEffect, useState } from "react";
+import * as apiClient from "../../../api/paymentMethod";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpZA, faArrowDownAZ } from '@fortawesome/free-solid-svg-icons';
-import { NavLink } from "react-router-dom";
-import { toast } from "react-toastify";
+import Modal from "./Modal";
 import { useAppContext } from "../../../hooks/useAppContext";
-import ModalPayment from "./ModalPayment";
+import { useQueryClient } from "react-query";
+import { toast } from "react-toastify";
+import Pagination from "../../components/Pagination";
+import ShowDeleteConfirmation from "../../components/ShowDeleteConfirmation";
 
-interface Product {
-    id: number;
-    name: string;
-}
-
-interface PurchaseDetail {
-    id: number;
-    productId: number;
-    productVariantId: number;
-    name: string;
-    code: string;
-    products: Product | null;
-    quantity: number;
-    cost: number;
-    taxNet: number;
-    taxMethod: string | null;
-    discount: number;
-    discountMethod: string | null;
-    total: number;
-}
-
-export interface PurchaseData {
+export interface PaymentMethodData {
     id?: number;
-    branchId: number;
-    supplierId: number;
-    branch: { id: number, name: string } | null;
-    suppliers: { id: number, name: string } | null;
-    ref: string;
-    date?: string | null; // Format: YYYY-MM-DD
-    taxRate?: string | null;
-    taxNet: number | null;
-    discount?: string | null;
-    shipping?: string | null;
-    grandTotal: number;
-    paidAmount: number | null;
-    status: string;
-    note: string;
-    purchaseDetails: PurchaseDetail[];
-}
+    name: string;
+};
 
-export interface PaymentData {
-    branchId: number | null;
-    purchaseId: number | null;
-    paymentMethodId: number | null;
-    paidAmount: number | null;
-    amount: number | null;
-    createdAt: string | null;
-    paymentMethods: { name: string } | null;
-}
-
-const User: React.FC = () => {
+const PaymentMethod: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
-    const [purchaseData, setPurchaseData] = useState<PurchaseData[]>([]);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-    const [isModalPaymentOpen, setIsModalPaymentOpen] = useState(false);
-    const [amountPurchase, setAmountPurchase] = useState<PaymentData | null>(null);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethodData[]>([]);
+    const [selectPaymentMethod, setSelectPaymentMethod] = useState<{ id: number | undefined, name: string} | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { hasPermission } = useAppContext();
 
-    const fetchPurchase = async () => {
+    const fetchPaymentMethods = async () => {
         setIsLoading(true);
         try {
-            const { data, total } = await apiClient.getAllPurchases(currentPage, searchTerm, itemsPerPage, sortField, sortOrder);
-            setPurchaseData(data);
+            const { data, total } = await apiClient.getAllPaymentMethods(currentPage, searchTerm, itemsPerPage, sortField, sortOrder);
+            setPaymentMethods(data);
             setTotalItems(total);
             setTotalPages(Math.ceil(total / itemsPerPage));
         } catch (error) {
-            console.error("Error fetching purchase:", error);
+            console.error("Error fetching unit:", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchPurchase();
+        fetchPaymentMethods();
     }, [currentPage, searchTerm, itemsPerPage, sortField, sortOrder]);
 
     const handleSortChange = (field: string) => {
@@ -107,7 +60,7 @@ const User: React.FC = () => {
         if (pageNumber >= 1 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
         }
-    };
+    }
 
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newItemsPerPage = parseInt(e.target.value, 10);
@@ -120,63 +73,77 @@ const User: React.FC = () => {
         setCurrentPage(1); // Reset to first page on new search
     };
 
-    const queryClient = useQueryClient();
+    const QueryClient = useQueryClient();
+    const handleAddorEditUnit = async (id: number | null, name: string) => {
+        try {
+            await QueryClient.invalidateQueries("validateToken");
+            const paymentMethodData: PaymentMethodData = {
+                id: id ? id : undefined,
+                name
+            };
 
-    const handleDeletePurchase = async (id: number) => {
+            await apiClient.upsertPaymentMethod(paymentMethodData);
+            if (id) {
+                toast.success("Payment Method updated successfully", {
+                    position: "top-right",
+                    autoClose: 2000
+                });
+            } else {
+                toast.success("Payment Method created successfully", {
+                    position: "top-right",
+                    autoClose: 2000
+                });
+            }
+            fetchPaymentMethods();
+            setIsModalOpen(false);
+        } catch (error: any) {
+            // Check if error.message is set by your API function
+            if (error.message) {
+                toast.error(error.message, {
+                    position: "top-right",
+                    autoClose: 2000
+                });
+            } else {
+                toast.error("Error adding/editting unit", {
+                    position: "top-right",
+                    autoClose: 2000
+                })
+            }
+        }
+    };
+
+    const handleEditClick = (unitData: PaymentMethodData) => {
+        setSelectPaymentMethod({
+            id: unitData.id,
+            name: unitData.name
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteUnit = async (id: number) => {
         const confirmed = await ShowDeleteConfirmation();
         if (!confirmed) {
             return;
         }
 
         try {
-            await queryClient.invalidateQueries("validateToken");
-            await apiClient.deletePurchase(id);
-            toast.success("Purchase deleted successfully", {
+            await QueryClient.invalidateQueries("validateToken");
+            await apiClient.deletePaymentMethod(id);
+            toast.success("Payment Method deleted sucessfully", {
                 position: "top-right",
-                autoClose: 2500
-            })
-
-            fetchPurchase();
+                autoClose: 2000
+            });
+            fetchPaymentMethods();
+            setIsModalOpen(false);
+            setSelectPaymentMethod(null);
         } catch (err: any) {
-            console.error("Error deleting purchase:", err);
-            toast.error(err.message || "Error deleting purchase", {
-                position: 'top-right',
-                autoClose: 2000
-            });
-        }
-    };
-
-    const addPaymentPurchase = (paymentData: PaymentData) => {
-        setAmountPurchase(paymentData);
-        setIsModalPaymentOpen(true);
-    };
-
-    const handleOnSubmitPayment = async (branchId: number | null, purchaseId: number | null, paidAmount: number | null, paymentMethodId: number | null, amount: number) => {
-        try {
-            await queryClient.invalidateQueries("validateToken");
-            console.log("api:", paymentMethodId);
-            const paymentData: PaymentData = {
-                branchId: branchId,
-                purchaseId: purchaseId,
-                paymentMethodId: paymentMethodId,
-                paidAmount: paidAmount,
-                amount: amount,
-                createdAt: null,
-                paymentMethods: null,
-            }
-            await apiClient.insertPurchasePayment(paymentData);
-            toast.success("Purchase payment insert successfully", {
-                position: "top-right",
-                autoClose: 2000
-            });
-            fetchPurchase();
-        } catch (error: any) {
-            toast.error(error.message || "Error adding payment", {
+            console.error("Error deleting payment method:", err)
+            toast.error(err.message || "Error deleting payment method", {
                 position: "top-right",
                 autoClose: 2000
             });
         }
-    };
+    }
 
     return (
         <>
@@ -187,8 +154,8 @@ const User: React.FC = () => {
                             <div className="px-0">
                                 <div className="md:absolute md:top-0 ltr:md:left-0 rtl:md:right-0">
                                     <div className="mb-5 flex items-center gap-2">
-                                        {hasPermission('Purchase-Create') &&
-                                            <NavLink to="/admin/addpurchase" className="btn btn-primary gap-2" >
+                                        {hasPermission('Payment-Method-Create') &&
+                                            <button className="btn btn-primary gap-2" onClick={() => { setIsModalOpen(true); setSelectPaymentMethod(null) }}>
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="24px"
@@ -205,7 +172,7 @@ const User: React.FC = () => {
                                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                                 </svg>
                                                 Add New
-                                            </NavLink>
+                                            </button>
                                         }
                                     </div>
                                 </div>
@@ -233,78 +200,30 @@ const User: React.FC = () => {
                                                     <th onClick={() => handleSortChange("no")}>
                                                         No {/* No <span>{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span> */}
                                                     </th>
-                                                    <th onClick={() => handleSortChange("date")}>
-                                                        Date <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
+                                                    <th onClick={() => handleSortChange("name")}>
+                                                        Name <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
                                                     </th>
-                                                    <th onClick={() => handleSortChange("ref")}>
-                                                        Reference <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th> 
-                                                    <th onClick={() => handleSortChange("supplierId")}>
-                                                        Supplier <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th> 
-                                                    <th onClick={() => handleSortChange("branchId")}>
-                                                        Branch <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th>
-                                                    <th onClick={() => handleSortChange("status")}>
-                                                        Status <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th>
-                                                    <th onClick={() => handleSortChange("grandTotal")}>
-                                                        Grand Total <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th> 
-                                                    <th onClick={() => handleSortChange("paidAmount")}>
-                                                        Paid <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th> 
-                                                    <th onClick={() => handleSortChange("due")}>
-                                                        Due <span className="cursor-pointer">{sortOrder === "desc" ? <FontAwesomeIcon icon={faArrowDownAZ} /> :<FontAwesomeIcon icon={faArrowUpZA} />}</span>
-                                                    </th> 
                                                     <th className="!text-center">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {purchaseData && purchaseData.length > 0 ? (
-                                                    purchaseData.map((rows, index) => (
+                                            {paymentMethods && paymentMethods.length > 0 ? (
+                                                    paymentMethods.map((rows, index) => (
                                                         <tr key={index}>
                                                             <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                                                            <td>{rows.date}</td>
-                                                            <td>{rows.ref}</td>
-                                                            <td>{rows.suppliers ? rows.suppliers.name : ""}</td>
-                                                            <td>{rows.branch ? rows.branch.name : ""}</td>
-                                                            <td><span className={`badge rounded-full ${rows.status === 'Pending' ? 'bg-warning' : 'bg-primary'}`}>{rows.status}</span></td>
-                                                            <td>$ { Number(rows.grandTotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
-                                                            <td>$ { Number(rows.paidAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
-                                                            <td>$ { Number(rows.grandTotal - (rows.paidAmount ?? 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
+                                                            <td>{rows.name}</td>
                                                             <td className="text-center">
                                                                 <div className="flex items-center justify-center gap-2">
-                                                                    <button type="button" 
-                                                                        className="hover:text-primary" 
-                                                                        onClick={() => addPaymentPurchase({ 
-                                                                            branchId: rows.branchId, 
-                                                                            purchaseId: Number(rows.id), 
-                                                                            paymentMethodId: 0, 
-                                                                            paidAmount: rows.paidAmount,
-                                                                            amount: rows.grandTotal,
-                                                                            createdAt: null,
-                                                                            paymentMethods: null, 
-                                                                        })} 
-                                                                        title="Payment Purchase"
-                                                                    >
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
-                                                                            <g fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                                                <path strokeLinecap="round" d="M15 5H9c-2.809 0-4.213 0-5.222.674a4 4 0 0 0-1.104 1.104C2 7.787 2 9.19 2 12s0 4.213.674 5.222a4 4 0 0 0 1.104 1.104c.347.232.74.384 1.222.484M9 19h6c2.809 0 4.213 0 5.222-.674a4 4 0 0 0 1.104-1.104C22 16.213 22 14.81 22 12s0-4.213-.674-5.222a4 4 0 0 0-1.104-1.104c-.347-.232-.74-.384-1.222-.484"></path>
-                                                                                <path d="M9 9a3 3 0 1 0 0 6m6-6a3 3 0 1 1 0 6"></path><path strokeLinecap="round" d="M9 5v14m6-14v14"></path>
-                                                                            </g>
-                                                                        </svg>
-                                                                    </button>
-                                                                    {hasPermission('Purchase-Update') &&
-                                                                        <NavLink to={`/admin/editpurchase/${rows.id}`} className="hover:text-warning" title="Edit">
+                                                                    {hasPermission('Payment-Method-Update') &&
+                                                                        <button type="button" className="hover:text-warning" onClick={() => handleEditClick(rows)} title="Edit">
                                                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-success">
                                                                                 <path d="M15.2869 3.15178L14.3601 4.07866L5.83882 12.5999L5.83881 12.5999C5.26166 13.1771 4.97308 13.4656 4.7249 13.7838C4.43213 14.1592 4.18114 14.5653 3.97634 14.995C3.80273 15.3593 3.67368 15.7465 3.41556 16.5208L2.32181 19.8021L2.05445 20.6042C1.92743 20.9852 2.0266 21.4053 2.31063 21.6894C2.59466 21.9734 3.01478 22.0726 3.39584 21.9456L4.19792 21.6782L7.47918 20.5844L7.47919 20.5844C8.25353 20.3263 8.6407 20.1973 9.00498 20.0237C9.43469 19.8189 9.84082 19.5679 10.2162 19.2751C10.5344 19.0269 10.8229 18.7383 11.4001 18.1612L11.4001 18.1612L19.9213 9.63993L20.8482 8.71306C22.3839 7.17735 22.3839 4.68748 20.8482 3.15178C19.3125 1.61607 16.8226 1.61607 15.2869 3.15178Z" stroke="currentColor" strokeWidth="1.5"></path>
                                                                                 <path opacity="0.5" d="M14.36 4.07812C14.36 4.07812 14.4759 6.04774 16.2138 7.78564C17.9517 9.52354 19.9213 9.6394 19.9213 9.6394M4.19789 21.6777L2.32178 19.8015" stroke="currentColor" strokeWidth="1.5"></path>
                                                                             </svg>
-                                                                        </NavLink>
+                                                                        </button>
                                                                     }
-                                                                    {hasPermission('Purchase-Delete') &&
-                                                                        <button type="button" className="hover:text-danger" onClick={() => rows.id && handleDeletePurchase(rows.id)} title="Delete">
+                                                                    {hasPermission('Payment-Method-Delete') &&
+                                                                        <button type="button" className="hover:text-danger" onClick={() => rows.id && handleDeleteUnit(rows.id)} title="Delete">
                                                                             <svg
                                                                                 width="24"
                                                                                 height="24"
@@ -354,7 +273,7 @@ const User: React.FC = () => {
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan={3}>No Purchase Found!</td>
+                                                        <td colSpan={3}>No Unit Found!</td>
                                                     </tr>
                                                 )}
                                             </tbody>
@@ -375,14 +294,14 @@ const User: React.FC = () => {
                 </div>
             </div>
 
-            <ModalPayment 
-                isOpen={isModalPaymentOpen}
-                onClose={() => setIsModalPaymentOpen(false)}
-                onSubmit={handleOnSubmitPayment}
-                amountPurchase={amountPurchase}
+            <Modal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleAddorEditUnit}
+                paymentMethod={selectPaymentMethod}
             />
         </>
     );
 };
 
-export default User;
+export default PaymentMethod;

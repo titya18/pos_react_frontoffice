@@ -23,6 +23,8 @@ import UserForm from "./pages/user/UserForm";
 {/* Branch */}
 import Branch from "./pages/branch/Branch";
 
+// Payment Method
+import PaymentMethod from "./pages/paymentmethod/PaymentMethod";
 // Category
 import Category from "./pages/category/Category";
 // Unit
@@ -68,6 +70,8 @@ const App: React.FC = () => {
                     {/* Branch */}
                     <Route path="/admin/branches" element={<PrivateRoute element={<Layout><Branch /></Layout>} />} />
 
+                    {/* Payment Method */}
+                    <Route path="/admin/paymentmethod" element={<PrivateRoute element={<Layout><PaymentMethod /></Layout>} />} />
                     {/* Category */}
                     <Route path="/admin/categories" element={<PrivateRoute element={<Layout><Category /></Layout>} />} />
                     {/* Unit */}

@@ -40,6 +40,15 @@ export interface PurchaseData {
     purchaseDetails: PurchaseDetail[];
 }
 
+export interface PaymentData {
+    branchId: number | null;
+    purchaseId: number | null;
+    paymentMethodId: number | null;
+    amount: number | null;
+    createdAt: string | null;
+    paymentMethods: { name: string } | null;
+}
+
 export const upsertPurchase = async (purchaseData: PurchaseData): Promise<PurchaseData> => {
     const { id, ...data } = purchaseData;
     const method = id ? "PUT" : "POST";
@@ -58,6 +67,38 @@ export const upsertPurchase = async (purchaseData: PurchaseData): Promise<Purcha
         const errorResponse = await response.json();
         const customError = id ? "Error updating purchase" : "Error creating purchase";
         throw new Error(errorResponse.message || customError);
+    }
+
+    return response.json();
+};
+
+export const insertPurchasePayment = async (paymentData: PaymentData): Promise<PaymentData> => {
+    console.log("API DAta:", paymentData);
+    // const { ...data } = paymentData;
+    const response = await fetch(`${API_BASE_URL}/api/purchase/payment`, {
+        credentials: "include",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(paymentData)
+    });
+    console.log("response:", response);
+    if (!response.ok) {
+        const errorResponse = await response.json();
+        const customError = "Error inserting purchase payment";
+        throw new Error(errorResponse.message || customError);
+    }
+
+    return response.json();
+};
+
+export const getPurchasePaymentById = async (id: number): Promise<PaymentData[]> => {
+    const response = await fetch(`${API_BASE_URL}/api/purchase/payment/${id}`, {
+        credentials: "include"
+    });
+    if (!response.ok) {
+        throw new Error("Error fetching purchase payments");
     }
 
     return response.json();

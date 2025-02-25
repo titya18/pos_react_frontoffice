@@ -686,7 +686,7 @@ const PurchaseForm: React.FC = () => {
                                                     quantity: 1, // Default quantity for a new item
                                                     cost: variants.purchasePrice, // Default cost
                                                     taxNet: 0, // Default taxNet
-                                                    taxMethod: "inclusive", // Default tax method
+                                                    taxMethod: "Include", // Default tax method
                                                     discount: 0,
                                                     discountMethod: "Fixed",
                                                     total: 0
