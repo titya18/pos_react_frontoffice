@@ -5,7 +5,7 @@ import Pagination from "../../components/Pagination"; // Import the Pagination c
 import ShowDeleteConfirmation from "../../components/ShowDeleteConfirmation";
 import { useQueryClient } from "react-query";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpZA, faArrowDownAZ } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpZA, faArrowDownAZ, faPrint } from '@fortawesome/free-solid-svg-icons';
 import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppContext } from "../../../hooks/useAppContext";
@@ -16,7 +16,7 @@ interface Product {
     name: string;
 }
 
-interface PurchaseDetail {
+export interface PurchaseDetail {
     id: number;
     productId: number;
     productVariantId: number;
@@ -61,7 +61,7 @@ export interface PaymentData {
     paymentMethods: { name: string } | null;
 }
 
-const User: React.FC = () => {
+const Purchase: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
@@ -275,26 +275,33 @@ const User: React.FC = () => {
                                                             <td>$ { Number(rows.grandTotal - (rows.paidAmount ?? 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }</td>
                                                             <td className="text-center">
                                                                 <div className="flex items-center justify-center gap-2">
-                                                                    <button type="button" 
-                                                                        className="hover:text-primary" 
-                                                                        onClick={() => addPaymentPurchase({ 
-                                                                            branchId: rows.branchId, 
-                                                                            purchaseId: Number(rows.id), 
-                                                                            paymentMethodId: 0, 
-                                                                            paidAmount: rows.paidAmount,
-                                                                            amount: rows.grandTotal,
-                                                                            createdAt: null,
-                                                                            paymentMethods: null, 
-                                                                        })} 
-                                                                        title="Payment Purchase"
-                                                                    >
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
-                                                                            <g fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                                                <path strokeLinecap="round" d="M15 5H9c-2.809 0-4.213 0-5.222.674a4 4 0 0 0-1.104 1.104C2 7.787 2 9.19 2 12s0 4.213.674 5.222a4 4 0 0 0 1.104 1.104c.347.232.74.384 1.222.484M9 19h6c2.809 0 4.213 0 5.222-.674a4 4 0 0 0 1.104-1.104C22 16.213 22 14.81 22 12s0-4.213-.674-5.222a4 4 0 0 0-1.104-1.104c-.347-.232-.74-.384-1.222-.484"></path>
-                                                                                <path d="M9 9a3 3 0 1 0 0 6m6-6a3 3 0 1 1 0 6"></path><path strokeLinecap="round" d="M9 5v14m6-14v14"></path>
-                                                                            </g>
-                                                                        </svg>
-                                                                    </button>
+                                                                    {hasPermission('Purchase-Update') &&
+                                                                        <NavLink to={`/admin/printpurchase/${rows.id}`} className="hover:text-warning" title="Print Purchase">
+                                                                            <FontAwesomeIcon icon={ faPrint } size="lg" />
+                                                                        </NavLink>
+                                                                    }
+                                                                    {hasPermission('Purchase-Payment') &&
+                                                                        <button type="button" 
+                                                                            className="hover:text-primary" 
+                                                                            onClick={() => addPaymentPurchase({ 
+                                                                                branchId: rows.branchId, 
+                                                                                purchaseId: Number(rows.id), 
+                                                                                paymentMethodId: 0, 
+                                                                                paidAmount: rows.paidAmount,
+                                                                                amount: rows.grandTotal,
+                                                                                createdAt: null,
+                                                                                paymentMethods: null, 
+                                                                            })} 
+                                                                            title="Payment Purchase"
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
+                                                                                <g fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                                                    <path strokeLinecap="round" d="M15 5H9c-2.809 0-4.213 0-5.222.674a4 4 0 0 0-1.104 1.104C2 7.787 2 9.19 2 12s0 4.213.674 5.222a4 4 0 0 0 1.104 1.104c.347.232.74.384 1.222.484M9 19h6c2.809 0 4.213 0 5.222-.674a4 4 0 0 0 1.104-1.104C22 16.213 22 14.81 22 12s0-4.213-.674-5.222a4 4 0 0 0-1.104-1.104c-.347-.232-.74-.384-1.222-.484"></path>
+                                                                                    <path d="M9 9a3 3 0 1 0 0 6m6-6a3 3 0 1 1 0 6"></path><path strokeLinecap="round" d="M9 5v14m6-14v14"></path>
+                                                                                </g>
+                                                                            </svg>
+                                                                        </button>
+                                                                    }
                                                                     {hasPermission('Purchase-Update') &&
                                                                         <NavLink to={`/admin/editpurchase/${rows.id}`} className="hover:text-warning" title="Edit">
                                                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-success">
@@ -385,4 +392,4 @@ const User: React.FC = () => {
     );
 };
 
-export default User;
+export default Purchase;

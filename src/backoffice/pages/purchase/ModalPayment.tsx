@@ -165,7 +165,7 @@ const ModalPayment: React.FC<ModalProps> = ({ isOpen, onClose, amountPurchase, o
                                                 );
                                             })
                                         ) : (
-                                            <p>No Data</p>
+                                            <p className="text-center font-bold mt-10">No Data</p>
                                         )}
 
                                     </div>

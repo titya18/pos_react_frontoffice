@@ -1,0 +1,41 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.panel {
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+@media print {
+    body {
+        padding: 0;
+    }
+
+    /* Hide buttons when printing */
+    button {
+        display: none;
+    }
+
+    /* other print specific styles */
+    .panel {
+      width: auto;
+      margin: 0;
+    }
+}

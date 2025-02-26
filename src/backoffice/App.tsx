@@ -39,10 +39,11 @@ import ProductVariant from "./pages/product_variant/ProductVariant";
 import Supplier from "./pages/supplier/Supplier";
 // Purchase
 import Purchase from "./pages/purchase/Purchase";
+import PurchaseForm from "./pages/purchase/PurchaseForm";
+import PrintPurchase from "./pages/purchase/PrintPurchase";
 
 
 import NotFound from "./pages/notfound/NotFount";
-import PurchaseForm from "./pages/purchase/PurchaseForm";
 
 const App: React.FC = () => {
     return (
@@ -88,6 +89,7 @@ const App: React.FC = () => {
                     <Route path="/admin/purchase" element={<PrivateRoute element={<Layout><Purchase /></Layout>} />} />
                     <Route path="/admin/addpurchase" element={<PrivateRoute element={<Layout><PurchaseForm /></Layout>} />} />
                     <Route path="/admin/editpurchase/:id" element={<PrivateRoute element={<Layout><PurchaseForm /></Layout>} />} />
+                    <Route path="/admin/printpurchase/:id" element={<PrivateRoute element={<Layout><PrintPurchase /></Layout>} />} />
 
                     {/* Catch-all route for undefined paths */}
                     <Route path="*" element={<NotFound />} />
