@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './style.css';
 import { useMutation, useQueryClient } from "react-query";
@@ -14,6 +14,7 @@ export type signInFormData = {
 };
 
 const SignIn: React.FC = () => {
+    const [rateLimited, setRateLimited] = useState(false); // Track rate limit state
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     
@@ -41,7 +42,10 @@ const SignIn: React.FC = () => {
         },
         onError: (errors: Error) => {
             const error = errors.message;
-            toast.error(error, {
+            if (!error) {
+                setRateLimited(true);
+            }
+            toast.error(error || "Too many login attempts. Please try again later 15 minutes.", {
                 position: 'top-right',
                 autoClose: 2000
             });
@@ -173,7 +177,7 @@ const SignIn: React.FC = () => {
                                     <button
                                         type="submit"
                                         className="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]"
-                                        disabled={mutation.isLoading}
+                                        disabled={mutation.isLoading || rateLimited}
                                     >
                                         {mutation.isLoading ? "Signing In..." : "Sign In"}
                                     </button>

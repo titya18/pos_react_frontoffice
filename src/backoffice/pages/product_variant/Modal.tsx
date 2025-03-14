@@ -219,7 +219,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
             <div className="flex items-center justify-center min-h-screen px-4">
                 <div className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-lg my-8">
                     <div className="flex bg-[#fbfbfb] dark:bg-[#121c2c] items-center justify-between px-5 py-3">
-                        <h5 className="font-bold text-lg">{productVariant ? "Edit Product" : "Add New Product"}</h5>
+                        <h5 className="font-bold text-lg">{productVariant ? "Edit Product's Variant" : "Add New Product's Variant"}</h5>
                         <button type="button" className="text-white-dark hover:text-dark" onClick={onClose}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -369,7 +369,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, productVariant
                                     <FontAwesomeIcon icon={faClose} className='mr-1' />
                                     Discard
                                 </button>
-                                {hasPermission('Category-Create') &&
+                                {hasPermission('Variant-Create') &&
                                     <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4" disabled={isLoading}>
                                         <FontAwesomeIcon icon={faSave} className='mr-1' />
                                         {isLoading ? 'Saving...' : 'Save'}

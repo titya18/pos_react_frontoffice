@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as apiClient from "../../../api/purchase";
 import { PurchaseData, PurchaseDetail } from "./Purchase";
-import "./PrintPurchase.css"; // Make sure this is imported for component styling
+import "./Print.css"; // Make sure this is imported for component styling
 
 // Component for render header invoice
-const InvoiceHeader: React.FC<{ data: PurchaseData }> = ({ data }) => {
+const InvoiceHeader: React.FC<{ data: PurchaseData }> = () => {
     return (
         <>
             {/* Invoice Header */}
@@ -14,7 +14,7 @@ const InvoiceHeader: React.FC<{ data: PurchaseData }> = ({ data }) => {
                 <div className="text-2xl font-semibold uppercase">Purchase Invoice</div>
                 <div className="shrink-0">
                     {/* Your Logo */}
-                    <img src="/assets/images/logo.svg" alt="image" className="w-14 ltr:ml-auto rtl:mr-auto" />
+                    <img src="/../admin_assets/images/logo.svg" alt="image" className="w-14 ltr:ml-auto rtl:mr-auto" />
                 </div>
             </div>
             {/* Company Details */}
@@ -74,7 +74,15 @@ const InvoiceItems: React.FC<{ items: PurchaseDetail[] }> = ({ items }) => {
                 </thead>
                 <tbody>
                     {items.map((item, index) => (
-                        <tr key={index}>
+                        <tr 
+                            key={index} 
+                            ref={(el) => {
+                                if (el) {
+                                    const bgColor = index === 0 ? "transparent" : index % 2 === 1 ? "#e0e6ed33" : "transparent";
+                                    el.style.setProperty("background-color", bgColor, "important");
+                                }
+                            }}
+                        >
                             <td>{index + 1}</td>
                             <td>{item.name}</td>
                             <td>{item.quantity}</td>
@@ -115,13 +123,52 @@ const InvoiceTotal: React.FC<{ grandTotal: number, paidAmount: number }> = ({ gr
 const PrintPurchase: React.FC = () => {
     const printRef = useRef<HTMLDivElement>(null);
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const [purchaseData, setPurchaseData] = useState<PurchaseData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch purchase data on component mount
+    // const handlePrint = () => {
+    //     if (!printRef.current) return;
+    //     const printContents = printRef.current.innerHTML || "";
+    //     const originalContents = document.body.innerHTML;
+
+    //     document.body.innerHTML = printContents;
+    //     window.print();
+    //     document.body.innerHTML = originalContents;
+    // };
+
+    const handlePrint = async () => {
+        if (!printRef.current) return;
+    
+        const printWindow = window.open('', '', 'height=700,width=900');
+        if (!printWindow) return;
+    
+        const printContents = printRef.current.innerHTML || '';
+        
+        // Try to fetch the CSS content directly and inject it
+        try {
+            const cssResponse = await fetch('/admin_assets/css/style.css');
+            const cssText = await cssResponse.text();
+            
+            // Add HTML for the print window with embedded styles
+            printWindow.document.write('<html><head><title>Purchase Invoice</title>');
+            printWindow.document.write('<style>' + cssText + '</style>'); // Inject the CSS directly
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContents);
+            printWindow.document.write('</body></html>');
+    
+            printWindow.document.close(); // Required for IE
+            printWindow.focus(); // Required for IE
+    
+            printWindow.print();
+            printWindow.close(); // Close the print window after printing
+        } catch (error) {
+            console.error('Error loading CSS:', error);
+        }
+    };
+
     useEffect(() => {
         const fetchPurchase = async () => {
             setIsLoading(true);
@@ -132,10 +179,10 @@ const PrintPurchase: React.FC = () => {
             } catch (err: any) {
                 setError(err.message || "Error fetching purchase");
                 toast.error(err.message || "Error fetching purchase", {
-                    position: 'top-right',
-                    autoClose: 2000
+                    position: "top-right",
+                    autoClose: 2000,
                 });
-                navigate("/admin/purchase");
+                // navigate("/admin/purchase");
             } finally {
                 setIsLoading(false);
             }
@@ -144,50 +191,7 @@ const PrintPurchase: React.FC = () => {
         if (id) {
             fetchPurchase();
         }
-    }, [id, navigate]);
-
-    const handlePrint = async () => {
-        if (printRef.current && purchaseData) {
-            const printWindow = window.open('', '_blank'); // Open in a new tab/window
-            if (printWindow) {
-                // Fetch the CSS content
-                const cssUrl = `${window.location.origin}/print-purchase.css`; // Construct the full URL
-                try {
-                    const response = await fetch(cssUrl);
-                    const cssText = await response.text();
-
-                    printWindow.document.write(`
-                        <html>
-                            <head>
-                                <title>Print Invoice</title>
-                                <style>${cssText}</style>
-                            </head>
-                            <body>
-                                <div class="print-container">
-                                    ${printRef.current.innerHTML}
-                                </div>
-                                <script>
-                                    window.onafterprint = () => {
-                                        window.close();
-                                    };
-                                    window.onload = () => {
-                                        window.print();
-                                    };
-                                </script>
-                            </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
-                } catch (error) {
-                    console.error("Error loading CSS:", error);
-                    toast.error("Error loading print styles", {
-                        position: 'top-right',
-                        autoClose: 2000
-                    });
-                }
-            }
-        }
-    };
+    }, [id]);
 
     // Handle loading and errors
     if (isLoading) {

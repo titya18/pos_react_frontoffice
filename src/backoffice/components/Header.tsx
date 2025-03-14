@@ -54,7 +54,7 @@ const Header: React.FC = () => {
                     <div className="relative flex w-full items-center bg-white px-5 py-2.5 dark:bg-[#0e1726]">
                         <div className="horizontal-logo flex items-center justify-between ltr:mr-2 rtl:ml-2 lg:hidden">
                             <Link to="/admin/dashboard" className="main-logo flex shrink-0 items-center">
-                                <img className="inline w-8 ltr:-ml-1 rtl:-mr-1" src="../admin_assets/images/logo.svg" alt="image" />
+                                <img className="inline w-8 ltr:-ml-1 rtl:-mr-1" src="/../admin_assets/images/logo.svg" alt="image" />
                                 <span className="hidden align-middle text-2xl font-semibold transition-all duration-300 ltr:ml-1.5 rtl:mr-1.5 dark:text-white-light md:inline">Lorn Titya</span>
                             </Link>
 
@@ -159,7 +159,7 @@ const Header: React.FC = () => {
                                     className="block rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60"
                                     onClick={() => toggleActiveDiv('div1')}
                                 >
-                                    <img src="../admin_assets/images/card-visa.svg"
+                                    <img src="/../admin_assets/images/card-visa.svg"
                                         alt="image"
                                         className="h-5 w-5 rounded-full object-cover"
                                     />
@@ -176,7 +176,7 @@ const Header: React.FC = () => {
                                                 >
                                                     <img
                                                         className="h-5 w-5 rounded-full object-cover"
-                                                        src="../admin_assets/images/card-visa.svg"
+                                                        src="/../admin_assets/images/card-visa.svg"
                                                         alt="image"
                                                     />
                                                     <span className="ltr:ml-3 rtl:mr-3"></span>
@@ -193,7 +193,7 @@ const Header: React.FC = () => {
                                     <span>
                                         <img
                                             className="h-9 w-9 rounded-full object-cover saturate-50 group-hover:saturate-100"
-                                            src="../admin_assets/images/user-profile.jpeg"
+                                            src="/../admin_assets/images/user-profile.jpeg"
                                             alt="image" />
                                     </span>
                                 </button>
@@ -205,7 +205,7 @@ const Header: React.FC = () => {
                                     <li>
                                         <div className="flex items-center px-4 py-4">
                                             <div className="flex-none">
-                                                <img className="h-10 w-10 rounded-md object-cover" src="../admin_assets/images/user-profile.jpeg" alt="image" />
+                                                <img className="h-10 w-10 rounded-md object-cover" src="/../admin_assets/images/user-profile.jpeg" alt="image" />
                                             </div>
                                             <div className="truncate ltr:pl-4 rtl:pr-4">
                                                 {isLoggedIn ? (
